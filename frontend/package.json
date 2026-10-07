@@ -1,0 +1,1 @@
+{"name":"voxagent-dashboard","private":true,"version":"1.0.0","scripts":{"dev":"vite","build":"vite build","test":"vitest run"},"dependencies":{"@vitejs/plugin-react":"latest","axios":"latest","lucide-react":"latest","react":"latest","react-dom":"latest","react-router-dom":"latest","recharts":"latest"},"devDependencies":{"vite":"latest","vitest":"latest","jsdom":"latest"}}
