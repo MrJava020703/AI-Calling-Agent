@@ -10,7 +10,7 @@ from .config import get_settings
 from .database import Base, engine, get_db
 from .models import Agent, Appointment, Call, Contact, KnowledgeDocument, User
 from .realtime import manager
-from .schemas import AgentIn, AppointmentIn, AppointmentOut, CallOut, ContactIn, ContactOut, KnowledgeIn, LoginRequest, OutboundCallIn, TokenResponse, UserOut
+from .schemas import AgentIn, AppointmentIn, AppointmentOut, CallOut, ContactIn, ContactOut, KnowledgeIn, OutboundCallIn, TokenResponse, UserOut
 from .security import create_token, current_user, hash_password, require_admin, verify_password
 from .services import DemoAgent, add_message, availability, book_appointment, create_call
 from .telephony import TwilioProvider
@@ -44,9 +44,13 @@ async def unknown_error(_: Request, exc: Exception):
 def health(): return {"status": "ok", "demo_mode": settings.demo_mode}
 
 @app.post("/api/auth/login", response_model=TokenResponse, tags=["Authentication"])
-def login(body: LoginRequest, db: Session = Depends(get_db)):
-    user = db.scalar(select(User).where(User.email == body.email))
-    if not user or not verify_password(body.password, user.password_hash): raise HTTPException(401, "Invalid email or password")
+def login(body: dict, db: Session = Depends(get_db)):
+    # Authentication deliberately returns one generic response for malformed or
+    # incorrect credentials, rather than exposing account-validation details.
+    email = str(body.get("email", "")).strip().lower()
+    password = str(body.get("password", ""))
+    user = db.scalar(select(User).where(User.email == email)) if email and password else None
+    if not user or not verify_password(password, user.password_hash): raise HTTPException(401, "Invalid email or password")
     return {"access_token": create_token(user)}
 @app.get("/api/auth/me", response_model=UserOut, tags=["Authentication"])
 def me(user: User = Depends(current_user)): return user
